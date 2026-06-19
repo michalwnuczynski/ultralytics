@@ -1397,6 +1397,31 @@ class RandomPerspective(BaseTransform):
         return (w2 > wh_thr) & (h2 > wh_thr) & (w2 * h2 / (w1 * h1 + eps) > area_thr) & (ar < ar_thr)  # candidates
 
 
+class RandomSpeckleNoise(BaseTransform):
+    """Apply multiplicative speckle noise to an image (for detection/segmentation pipeline).
+
+    Speckle noise is modeled as: out = img + img * noise, where noise ~ N(0, variance).
+
+    Attributes:
+        variance (float): Variance of the speckle noise. 0.0 disables the transform.
+    """
+
+    def __init__(self, variance: float = 0.0) -> None:
+        self.variance = variance
+
+    def apply_image(self, labels, params: dict[str, Any] | None = None):
+        """Apply speckle noise to a NumPy BGR image."""
+        img = labels["img"]
+        if self.variance > 0:
+            std = self.variance ** 0.5
+            h, w = img.shape[:2]
+            noise = np.random.randn(h, w).astype(np.float32) * std
+            noise = noise[:, :, np.newaxis]  # (H, W, 1) — same noise for all channels
+            noisy = img.astype(np.float32) + img.astype(np.float32) * noise
+            labels["img"] = np.clip(noisy, 0, 255).astype(img.dtype)
+        return labels
+
+
 class RandomHSV(BaseTransform):
     """Randomly adjust the Hue, Saturation, and Value (HSV) channels of an image.
 
@@ -2767,6 +2792,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
             CutMix(dataset, pre_transform=pre_transform, p=hyp.cutmix),
             Albumentations(p=1.0, transforms=getattr(hyp, "augmentations", None)),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+            RandomSpeckleNoise(variance=hyp.speckle_noise),
             RandomFlip(direction="vertical", p=hyp.flipud, flip_idx=flip_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]

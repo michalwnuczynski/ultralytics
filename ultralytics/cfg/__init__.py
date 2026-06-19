@@ -211,6 +211,7 @@ CFG_FRACTION_KEYS = frozenset(
         "iou",
         "fraction",
         "multi_scale",
+        "speckle_noise",
     }
 )
 CFG_INT_KEYS = frozenset(
