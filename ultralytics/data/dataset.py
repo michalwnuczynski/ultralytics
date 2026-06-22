@@ -15,6 +15,7 @@ import torch
 from PIL import Image
 from torch.utils.data import ConcatDataset
 
+from ultralytics.data.channel_transform import ChannelTransform
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
@@ -222,6 +223,11 @@ class YOLODataset(BaseDataset):
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+        
+        channel_mode = int(getattr(hyp, "channel_mode", 1))  # default to 1 if not specified
+        if channel_mode > 1:
+            transforms.append(ChannelTransform(mode=channel_mode))
+
         transforms.append(
             Format(
                 bbox_format="xywh",

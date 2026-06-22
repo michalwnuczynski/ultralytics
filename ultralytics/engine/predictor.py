@@ -52,6 +52,7 @@ from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox
 from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.data.channel_transform import apply_channel_mode
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
@@ -162,7 +163,12 @@ class BasePredictor:
         """
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
-            im = np.stack(self.pre_transform(im))
+            im = self.pre_transform(im)
+            # SAR input-channel transform
+            channel_mode = int(getattr(self.args, "channel_mode", 1))  # default to 1 if not specified
+            if channel_mode > 1:
+                im = [apply_channel_mode(x, channel_mode) for x in im]
+            im = np.stack(im)
             if im.shape[-1] == 3:
                 im = im[..., ::-1]  # BGR to RGB
             im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)

@@ -131,5 +131,8 @@ speckle_noise: 0.0 # (float) speckle noise variance (0.0 to disable, typical 0.0
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) path to a config.yaml that overrides defaults
 
+# SAR input-channel preprocessing ------------------------------------------------------------------------------------------------
+channel_mode: 1 # (int) input channel mode for SAR data; 1=
+
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker config: botsort.yaml, bytetrack.yaml, ocsort.yaml, deepocsort.yaml, fasttrack.yaml, tracktrack.yaml

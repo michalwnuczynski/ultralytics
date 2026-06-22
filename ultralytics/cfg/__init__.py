@@ -227,6 +227,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "channel_mode",
     }
 )
 CFG_BOOL_KEYS = frozenset(
